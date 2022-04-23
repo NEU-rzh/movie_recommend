@@ -1,17 +1,16 @@
-package com.neu.shopping_recommend.dao;
+package com.neu.movie_recommend.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.neu.shopping_recommend.domain.Commodity;
+import com.neu.movie_recommend.domain.Commodity;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.jdbc.SQL;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
  * @author rzh
- * @date 2021/10/12 - 22:43
+ * @date 2022/3/18 - 22:43
  */
 @Repository
 public interface ICommodityMapper extends BaseMapper<Commodity> {

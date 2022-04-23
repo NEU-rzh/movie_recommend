@@ -1,10 +1,12 @@
-package com.neu.shopping_recommend.service.impl;
+package com.neu.movie_recommend.service.impl;
 
-import com.neu.shopping_recommend.domain.Commodity;
-import com.neu.shopping_recommend.domain.UserPreference;
-import com.neu.shopping_recommend.service.ICommodityService;
-import com.neu.shopping_recommend.service.IRecommendService;
-import com.neu.shopping_recommend.service.IUserPreferenceService;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+
+import com.neu.movie_recommend.domain.Commodity;
+import com.neu.movie_recommend.domain.UserPreference;
+import com.neu.movie_recommend.service.ICommodityService;
+import com.neu.movie_recommend.service.IRecommendService;
+import com.neu.movie_recommend.service.IUserPreferenceService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.mahout.cf.taste.common.TasteException;
@@ -25,14 +27,12 @@ import org.apache.mahout.cf.taste.similarity.ItemSimilarity;
 import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * @author rzh
- * @date 2021/10/12 - 23:30
+ * @date 2022/3/18 - 23:30
  */
 @Service
 @Slf4j
@@ -42,7 +42,7 @@ public class RecommendServiceImpl implements IRecommendService {
     private final IUserPreferenceService iUserPreferenceService;
 
     @Override
-    public List<Commodity> getRecommendCommodityByUser(Long userId, int count) throws TasteException {
+    public Page<Commodity> getRecommendCommodityByUser(Page<Commodity> page, Long userId, int count) throws TasteException {
         DataModel dataModel = this.createDataModel();
 
         // 计算相拟度，相拟度算法很多种，采用基于皮尔逊相关性的相拟度
@@ -50,7 +50,6 @@ public class RecommendServiceImpl implements IRecommendService {
 
         // 计算最近邻域，邻居有两种算法，基于固定数量的邻居和基于相拟度的邻居，这里使用基于固定数量的邻居
         UserNeighborhood userNeighborhood = new NearestNUserNeighborhood(100, similarity, dataModel);
-
         // 构建推荐器，基于用户的协同过滤推荐
         Recommender recommender = new GenericUserBasedRecommender(dataModel, userNeighborhood, similarity);
 
@@ -59,33 +58,36 @@ public class RecommendServiceImpl implements IRecommendService {
                 .map(RecommendedItem::getItemID)
                 .collect(Collectors.toList());
 
-        // 防止sql 出错
-        return commodityIds.size() > 0 ? iCommodityService.findCommodityByIds(commodityIds) : new ArrayList<>();
+        return iCommodityService.findCommodityByIds(page,commodityIds);
     }
 
     @Override
-    public List<Commodity> getRecommendCommodityByCommodity(Long userId, Long itemId, int count) throws TasteException {
+    public Page<Commodity> getRecommendCommodityByCommodity(int pageNum,int pageSize,Long userId, Long commodityId, int count) throws TasteException {
         DataModel dataModel = this.createDataModel();
 
         // 采用基于皮尔逊相关性的相拟度
         ItemSimilarity itemSimilarity = new PearsonCorrelationSimilarity(dataModel);
-
         // 基于物品的协同过滤推荐
-        GenericItemBasedRecommender genericItemBasedRecommender = new GenericItemBasedRecommender(dataModel, itemSimilarity);
+        GenericItemBasedRecommender recommender = new GenericItemBasedRecommender(dataModel, itemSimilarity);
+        // 根据电影 推荐电影
+        List<RecommendedItem> recommendedItemList = recommender.recommendedBecause(userId, commodityId, 10);
+        List<Long> itemIds = new ArrayList<>();
+        for (RecommendedItem recommendedItem : recommendedItemList) {
+            System.out.println(recommendedItem);
+            itemIds.add(recommendedItem.getItemID());
+        }
+        System.out.println("推荐出来商品的id集合" + itemIds);
 
-        // 物品推荐相拟度，计算两个物品同时出现的次数，次数越多任务的相拟度越高
-        List<Long> commodityIds = genericItemBasedRecommender.recommendedBecause(userId, itemId, count)
-                .stream()
-                .map(RecommendedItem::getItemID)
-                .collect(Collectors.toList());
 
-        return commodityIds.size() > 0 ? iCommodityService.findCommodityByIds(commodityIds) : new ArrayList<>();
+        Page<Commodity> page = new Page();
+        if(itemIds.size()!=0)
+            page = iCommodityService.findCommodityByIds(new Page<>(pageNum,pageSize),itemIds);
+        return page;
     }
 
     private DataModel createDataModel() {
         FastByIDMap<PreferenceArray> fastByIdMap = new FastByIDMap<>();
 
-        // 这里可以通过sql 查询简化下
         iUserPreferenceService.getAllUserPreference().stream()
                 .collect(Collectors.groupingBy(UserPreference::getUid))
                 .values()
@@ -94,7 +96,8 @@ public class RecommendServiceImpl implements IRecommendService {
                         .map(item -> new GenericPreference(item.getUid(), item.getPid(), item.getVal()))
                         .toArray(GenericPreference[]::new)
                 )
-                .forEach(genericArrayPreference -> fastByIdMap.put(genericArrayPreference[0].getUserID(), new GenericUserPreferenceArray(Arrays.asList(genericArrayPreference))));
+                .forEach(genericArrayPreference -> fastByIdMap.put(genericArrayPreference[0].getUserID(),
+                                    new GenericUserPreferenceArray(Arrays.asList(genericArrayPreference))));
 
         return new GenericDataModel(fastByIdMap);
     }

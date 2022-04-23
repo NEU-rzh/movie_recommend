@@ -1,12 +1,12 @@
-package com.neu.shopping_recommend.service;
+package com.neu.movie_recommend.service;
 
-import com.neu.shopping_recommend.domain.UserPreference;
+import com.neu.movie_recommend.domain.UserPreference;
 
 import java.util.List;
 
 /**
  * @author rzh
- * @date 2021/10/12 - 23:15
+ * @date 2022/3/18 - 23:15
  */
 public interface IUserPreferenceService {
     /**

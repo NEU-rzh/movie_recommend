@@ -1,4 +1,4 @@
-package com.neu.shopping_recommend.domain;
+package com.neu.movie_recommend.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -7,7 +7,7 @@ import lombok.Data;
 
 /**
  * @author rzh
- * @date 2021/10/12 - 16:36
+ * @date 2022/3/18 - 16:36
  */
 @Data
 @TableName("commodity")
@@ -17,12 +17,10 @@ public class Commodity {
      */
     @TableId(type = IdType.AUTO)
     private Long pid;
-
     /**
      * 商品名称
      */
     private String name;
-
     /**
      * 商品类型
      */

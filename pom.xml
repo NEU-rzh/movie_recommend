@@ -52,6 +52,11 @@
             <artifactId>mybatis-plus-boot-starter</artifactId>
             <version>3.4.3.1</version>
         </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.7.4</version>
+        </dependency>
         <!-- Swagger Begin -->
         <dependency>
             <groupId>io.springfox</groupId>
@@ -66,6 +71,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.5.2</version>
                 <configuration>
                     <excludes>
                         <exclude>

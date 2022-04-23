@@ -1,13 +1,12 @@
-package com.neu.shopping_recommend.service;
+package com.neu.movie_recommend.service;
 
-import com.neu.shopping_recommend.domain.Commodity;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.neu.movie_recommend.domain.Commodity;
 import org.apache.mahout.cf.taste.common.TasteException;
-
-import java.util.List;
 
 /**
  * @author rzh
- * @date 2021/10/12 - 23:15
+ * @date 2022/3/18 - 23:15
  */
 public interface IRecommendService {
     /**
@@ -17,7 +16,7 @@ public interface IRecommendService {
      * @return 推荐的商品
      * @throws TasteException Taste引擎内部发生错误时引发的异常
      */
-    List<Commodity> getRecommendCommodityByUser(Long userId, int count) throws TasteException;
+    Page<Commodity> getRecommendCommodityByUser(Page<Commodity> page, Long userId, int count) throws TasteException;
 
     /**
      * 基于内容的商品推荐
@@ -27,5 +26,5 @@ public interface IRecommendService {
      * @return 推荐的商品
      * @throws TasteException Taste引擎内部发生错误时引发的异常
      */
-    List<Commodity> getRecommendCommodityByCommodity(Long userId, Long commodityId, int count) throws TasteException;
+    Page<Commodity> getRecommendCommodityByCommodity(int pageNum,int pageSize,Long userId, Long commodityId, int count) throws TasteException;
 }
